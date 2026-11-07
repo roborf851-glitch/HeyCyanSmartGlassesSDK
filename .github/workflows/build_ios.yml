@@ -1,20 +1,40 @@
 name: Build iOS App
-on: [workflow_dispatch]
+
+on:
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Build
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build iOS App without Signing
         run: |
           cd ios
-          xcodebuild -project QCSDKDemo.xcodeproj -scheme QCSDKDemo -sdk iphoneos -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="Apple Development" EMBEDDED_CONTENT_CONTAINS_SWIFT=YES
-      - name: Package
+          xcodebuild -project QCSDKDemo.xcodeproj \
+                     -scheme QCSDKDemo \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -derivedDataPath build \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     IPHONEOS_DEPLOYMENT_TARGET=15.0 \
+                     EMBEDDED_CONTENT_CONTAINS_SWIFT=YES
+
+      - name: Package IPA
         run: |
           mkdir -p Payload
           cp -r ios/build/Build/Products/Release-iphoneos/QCSDKDemo.app Payload/
           zip -r QCSDKDemo.ipa Payload
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: QCSDKDemo-IPA
           path: QCSDKDemo.ipa
