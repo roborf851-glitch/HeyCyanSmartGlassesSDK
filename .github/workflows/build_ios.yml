@@ -27,10 +27,15 @@ jobs:
                      IPHONEOS_DEPLOYMENT_TARGET=15.0 \
                      EMBEDDED_CONTENT_CONTAINS_SWIFT=YES
 
-      - name: Package IPA
+      - name: Package IPA and Strip Code Signatures
         run: |
           mkdir -p Payload
           cp -r ios/build/Build/Products/Release-iphoneos/QCSDKDemo.app Payload/
+          
+          # Pašaliname senus framework kodo parašus, kad Sideloadly galėtų pasirašyti iš naujo
+          rm -rf Payload/QCSDKDemo.app/Frameworks/QCSDK.framework/_CodeSignature
+          rm -f Payload/QCSDKDemo.app/Frameworks/QCSDK.framework/CodeResources
+          
           zip -r QCSDKDemo.ipa Payload
 
       - name: Upload Artifact
